@@ -17,6 +17,14 @@ logger = getLogger(__name__)
 basicConfig(level=INFO)
 
 
+def get_coverage(driver, test_id, outdir):
+    cov = driver.execute_script('return window.__coverage__;');
+    file = '{}-coverage.json'.format(test_id)
+    logger.info(file)
+    with open(os.path.join(outdir, file), 'w') as f:
+        f.write(json.dumps(cov))
+
+
 def get_screenshot(driver, test_suite_name, test_case_name, cmd_index, test_dict, outdir):
     from selenium.common.exceptions import UnexpectedAlertPresentException
 
@@ -171,6 +179,9 @@ def _execute_test_command(driver, test_project, test_suite, tests, idx, test, ou
     test_command_output = execute_test_command(driver, test_project, test_suite, test)
     _store_test_command_output(output, test_suite, tests, test_command_output)
     time.sleep(float(Config.DRIVER_COMMAND_WAIT) / 1000)
+
+    # output coverage
+    get_coverage(driver, tests['id'], outdir)
 
     if test_command_output['is_failed']:
         get_screenshot(driver, test_suite['name'], tests['name'], idx, test, outdir)
